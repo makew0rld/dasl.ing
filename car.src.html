@@ -39,10 +39,10 @@
         The length prefix in a CAR is encoded as an unsigned variable-length
         integer ([[varint]], a variant of <a href="https://en.wikipedia.org/wiki/LEB128">LEB128</a>).
         This integer specifies the number of remaining bytes, excluding
-        the bytes used to encode the integer, but including the CID for Body blocks.
+        the bytes used to encode the integer.
       </p>
-      <pre><code>|------ Header -----| |------------------- Body -------------------|
-[ int | DRISL block ] [ int | CID | data ] [ int | CID | data ] …
+      <pre><code>|--- Header --| |------------------- Body -------------------|
+[ int | DRISL ] [ int | CID | data ] [ int | CID | data ] …
       </code></pre>
       <p>
         The steps to <dfn>parse a CAR</dfn> are:
@@ -61,12 +61,8 @@
           <ol>
             <li>If <var>bytes</var> is empty, terminate these substeps.</li>
             <li>
-              Run the steps to <a>parse a CAR block header</a> with <var>bytes</var>
-              to obtain <var>cid</var> and <var>data size</var>.
-            </li>
-            <li>
-              Read <var>data size</var> bytes from <var>bytes</var> and store the
-              result in <var>data</var>.
+              Run the steps to <a>parse a CAR block</a> with <var>bytes</var>
+              to obtain <var>cid</var>, <var>data size</var> and <var>data</var>.
             </li>
             <li>
               Push an entry onto <var>blocks</var> containing <var>cid</var>,
@@ -136,23 +132,26 @@
       </ol>
       <p>
         After its header, CAR contains a series of blocks each of which is
-        length-prefixed and has a small header capturing a CID followed by
-        the block's body data.
+        length-prefixed.
       </p>
       <p>
-        The steps to <dfn>parse a CAR block header</dfn> are:
+        The steps to <dfn>parse a CAR block</dfn> are:
       </p>
       <ol>
         <li>Accept a byte stream <var>bytes</var>.</li>
         <li>Read an unsigned varint <var>length</var> from <var>bytes</var> ([[varint]]).</li>
-        <li>If <var>length</var> is 0, throw an error.</li>
+        <li>If <var>length</var> is less than 36, throw an error.</li>
         <li>
           Read a CID ([[cid]]) from <var>bytes</var> and store it in <var>cid</var>.
           Note: the length of the CID is always 36 bytes.
         </li>
         <li>Set <var>data size</var> to <var>length</var> minus 36 (the CID length).</li>
         <li>
-          Return <var>data size</var> and <var>cid</var>.
+          Read <var>data size</var> bytes from <var>bytes</var> and store the
+          result in <var>data</var>.
+        </li>
+        <li>
+          Return <var>cid</var>, <var>data size</var> and <var>data</var>.
         </li>
       </ol>
     </section>
