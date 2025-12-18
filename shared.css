@@ -55,8 +55,7 @@
   --header-font-size: 1.6rem;
   --brutal-border: 5px solid #000;
 }
-html,
-body {
+html, body {
   margin: 0;
   padding: 0;
   font-family: Barlow;
@@ -87,8 +86,7 @@ var {
   text-decoration-thickness: 3px;
   text-decoration-color: #ccc;
 }
-code,
-pre {
+code, pre {
   font-size: 1rem;
 }
 .early {
@@ -97,8 +95,7 @@ pre {
   font-weight: bold;
   margin-left: 1rem;
 }
-.early::before,
-.early::after {
+.early::before, .early::after {
   display: inline-block;
   margin: 0 0.5rem;
   content: "💥";
