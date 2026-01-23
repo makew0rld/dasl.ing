@@ -64,13 +64,9 @@
         contiguous set of bytes from a larger source held by a server.
         Range requests use a Range header: <code>Range: bytes={start}-{end}</code>
         Both <var>start</var> and <var>end</var> values are optional, and when missing indicate
-<<<<<<< HEAD
-        the first and last byte, respectively.
-=======
-        the first and late byte, respectively. Both are integers that map to bytes,
+        the first and last byte, respectively. Both are integers that map to bytes,
         with 0 indexing the first byte. The <var>end</var> integer is inclusive, such that
         ranging over the first 500 bytes would require a range specifier of <code>0-499</code>.
->>>>>>> 0b12bc8 (explain ranges a bit more)
       </p>
       <p>
         In this context the HTTP server is acting as a <i>trusted</i> gateway,
