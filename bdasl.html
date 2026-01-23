@@ -178,22 +178,22 @@
       <section>
         <h3>Example</h3>
         <p>
-          For a request of <code>Range: bytes=512-1535</code>
+          For a request of <code>Range: bytes=500-1600</code>
           two chunks will be retrieved, chunk 0 and chunk 1.
         </p>
         <ul>
           <li>
             <b>Chunk 0</b> (offset 0, 1024 bytes):
             <ul>
-              <li>Intersection: <code>[512, 1024)</code></li>
-              <li>Extracted: <code>chunk_data[512..1024]</code> (512 bytes)</li>
+              <li>Intersection: <code>[500, 1024)</code></li>
+              <li>Extracted: <code>chunk_data[500..1024]</code> (524 bytes)</li>
             </ul>
           </li>
           <li>
             <b>Chunk 1</b> (offset 1024, 1024 bytes):
             <ul>
-              <li>Intersection: <code>[1024, 1536)</code></li>
-              <li>Extracted: <code>chunk_data[0..512]</code> (512 bytes)</li>
+              <li>Intersection: <code>[1024, 1600)</code></li>
+              <li>Extracted: <code>chunk_data[0..577]</code> (577 bytes)</li>
             </ul>
           </li>
         </ul>
