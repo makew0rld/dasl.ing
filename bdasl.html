@@ -15,11 +15,11 @@
 -->
 
 
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Big DASL (BDASL)</title>
   <link rel="stylesheet" href="spec.css"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%220%22 y=%220%22 width=%22100%22 height=%22100%22 fill=%22%2300ff75%22></rect></svg>"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" property="og:title" content="DASL: Big DASL (BDASL)"><meta name="twitter:description" property="og:description" content="BDASL extends DASL CIDs with a new hash type that works better for large files but isn't         available by default in browsers, and therefore not an appropriate option in most         situations."><meta name="twitter:image" property="og:image" content="https://dasl.ing/bdasl.png"><meta name="twitter:image:alt" content="Very colourful stripes, so colourful it hurts"><meta name="twitter:url" property="og:url" content="https://dasl.ing/"><meta property="og:site_name" content="DASL"><meta property="og:locale" content="en"><meta name="theme-color" content="#00ff75"></head>
-  <body><div class="nav-back">A specification of the <a href="/">DASL Project</a>.</div><main><header><h1>Big DASL (BDASL)</h1><table><tbody><tr><th>date</th><td>2025-10-20</td></tr><tr><th>editors</th><td><a href="https://berjon.com/">Robin Berjon</a> &lt;<a href="mailto:robin@berjon.com">robin@berjon.com</a>&gt;<br><a href="https://bumblefudge.com/">Juan Caballero</a> &lt;<a href="mailto:bumblefudge@learningproof.xyz">bumblefudge@learningproof.xyz</a>&gt;</td></tr><tr><th>issues</th><td><a href="https://github.com/darobin/dasl.ing/issues">list</a>, <a href="https://github.com/darobin/dasl.ing/issues/new">new</a></td></tr><tr><th>abstract</th><td><div id="abstract">
+  <body><div class="nav-back">A specification of the <a href="/">DASL Project</a>.</div><main><header><h1>Big DASL (BDASL)</h1><table><tbody><tr><th>date</th><td>2026-01-23</td></tr><tr><th>editors</th><td><a href="https://berjon.com/">Robin Berjon</a> &lt;<a href="mailto:robin@berjon.com">robin@berjon.com</a>&gt;<br><a href="https://bumblefudge.com/">Juan Caballero</a> &lt;<a href="mailto:bumblefudge@learningproof.xyz">bumblefudge@learningproof.xyz</a>&gt;</td></tr><tr><th>issues</th><td><a href="https://github.com/darobin/dasl.ing/issues">list</a>, <a href="https://github.com/darobin/dasl.ing/issues/new">new</a></td></tr><tr><th>abstract</th><td><div id="abstract">
       <p>
         BDASL extends DASL CIDs with a new hash type that works better for large files but isn't
         available by default in browsers, and therefore not an appropriate option in most
@@ -30,7 +30,7 @@
     <section>
       <h2>Introduction</h2>
       <p>
-        BDASL extends DASL CIDs by adding BLAKE3 support ([[blake3]). BLAKE3 is a powerful hashing
+        BDASL extends DASL CIDs by adding BLAKE3 support ([<a href="#ref-blake3" class="ref">blake3</a>]). BLAKE3 is a powerful hashing
         framework that works well for progressive verification of large streams. Unfortunately,
         it isn't available in browser (and neither is streaming hashing in general) which makes it
         inappriopriate for inclusion as the primary hash function in DASL CIDs.
@@ -51,6 +51,154 @@
         may also be equal to <code>0x1e</code> (BLAKE3) ([<a href="#ref-blake3" class="ref">blake3</a>]).
       </p>
     </section>
+    <section>
+      <h2>Streaming Verification</h2>
+      <p>
+        Some content is big. While this produces challenges in all contexts, it
+        creates specific issues with content addressing. When retrieving content-addressed
+        data, verifying the retrieval typically requires having all the bytes
+        available. Not only may this be resource-intensive, it is also impractical:
+        imagine watching a multi-hour video only to be told <em>when you're almost
+        done watching the whole thing</em>, which is to say when the last bytes
+        are buffered, that you got the wrong, possibly fraudulent video.
+      </p>
+      <p>
+        Streaming verification is a process that makes it possible to verify
+        data incrementally or partially. The high level use cases for this are
+        two-fold:
+      </p>
+      <ul>
+        <li>
+          Check as you go: you stream data (presumably from the beginning) and
+          the receiver is able to ensure that the data is correct in incremental
+          chunks.
+        </li>
+        <li>
+          Check within ranges: the receiver retrieves arbitrary (or near-arbitrary) subsets
+          of the sender's data, and is able to verify the retrieved chunks without
+          seeing the whole thing or even the bytes that came before a given
+          chunk.
+        </li>
+      </ul>
+      <p>
+        This makes certain usages possible. Checking as you go, you can watch a
+        video and verify it in flight, knowing that you're retrieving the rigth,
+        untampered resource as you go. Using ranges, you can query a remote petabyte-scale
+        database simply by seeking inside its on-disk representation (with no
+        server more specific than a range-capable HTTP server), while only sending the necessary
+        data over the wire and verifying it as it comes.
+      </p>
+      <p>
+        It's important to keep in mind that streaming verification typically requires
+        sidecar that provides information about the hash tree that describes the
+        remote resource. This kind of sidecar incurs an overhead, but the overhead
+        is justified by the streaming benefits.
+      </p>
+      <p>
+        The [<a href="#ref-blake3" class="ref">blake3</a>] spec outlines
+        <i>Streaming Verification</i>, a process that allows the sender
+        and receiver of a CID to incrementally verify data as it is
+        being transferred. Applying this technique to CIDs is the core
+        benefit of BDASL, which is well-suited to both fetching byte
+        ranges within a CID, and verifying data where the cost of
+        faulty transmission will impact the performance of an application.
+        Verified streaming incurs minimal overhead on payloads of all
+        sizes, and scales linearly as a small percentage of the size of
+        the CID being verified.
+      </p>
+      <p>
+        Streaming verification rounds to the nearest kilobyte for
+        verification. For more details and a reference implementation, see
+        [<a href="#ref-iroh-blobs" class="ref">iroh-blobs</a>].
+      </p>
+    </section>
+    <section>
+      <h2>Verifying HTTP Range Requests</h2>
+      <p>
+        [<a href="#ref-rfc9110" class="ref">rfc9110</a>] defines HTTP range requests for fetching a single
+        contiguous set of bytes from a larger source held by a server.
+        Range requests use a <code>Range</code> header: <code>Range: bytes={start}-{end}</code>
+        Both <var>start</var> and <var>end</var> values are optional, and when missing indicate
+        the first and last byte, respectively. Both are integers that map to bytes,
+        with 0 indexing the first byte. The <var>end</var> integer is inclusive, such that
+        ranging over the first 500 bytes would require a range specifier of <code>0-499</code>.
+      </p>
+      <p>
+        In this context, the HTTP server is <em>trusted</em>: the client is getting
+        bytes back the integrity of which it cannot verify and has to trust the
+        server to be correctly performing verification on behalf of the user, to
+        not be malicious, to not introduce errors, and ultimately to serve as the
+        authority for that content ([<a href="#ref-ipfs-principles" class="ref">ipfs-principles</a>]). Being able to support
+        <em>trustless</em> fetching requires the abilty to use verified streaming directly
+        as described below.
+      </p>
+      <section>
+        <h3>Fufilling Range Requests</h3>
+        <p>
+          Under the hood, streaming verification works by verifying <em>chunks</em>
+          of a certain size. The chunks are the smallest level of granularity that
+          can be verified. If the chunk size is 1024 bytes and the client requests
+          range 900-1299, then the client needs to fetch two chunks (0-1023 and
+          1024-2047) for a total of 2048 bytes, verify those two chunks, and then
+          return the subset of data corresponding to the requested range.
+        </p>
+        <p>
+          For a given byte range
+          <code>(start: Option&lt;u64&gt;, end: Option&lt;u64&gt;)</code>,
+          that byte range is mapped to a <var>chunk range</var>, which is the
+          set of chunks that fully contains the set of bytes in the
+          HTTP range request. The <var>chunk range</var> corresponding to a given
+          byte range is calculated as follows:
+        </p>
+        <p>
+          <i>Start Chunk</i>:
+        </p>
+        <ul>
+          <li>If <code>start</code> is a number <var>s</var>, use <code>⌈s / 1024⌉</code> (ceiling division).</li>
+          <li>If <code>start</code> is empty, there is no lower bound, so begin the request from byte 0.</li>
+        </ul>
+        <p>
+          <i>End Chunk</i>:
+        </p>
+        <ul>
+          <li>If <code>end</code> is a number <var>s</var>, use <code>⌈s / 1024⌉</code> (ceiling division).</li>
+          <li>If <code>end</code> is empty, no upper bound, so request to the end of the byte array.</li>
+        </ul>
+        <p>
+          From here, construct a verified range request in accordance with
+          the verified streaming protocol, as chunks arrive, check if the
+          chunk responded intersects with either start or end chunks.
+        </p>
+        <ul>
+          <li>Truncate the <var>start</var> chunk to match the byte offset of the request.</li>
+          <li>Truncate the <var>end</var> chunk to match the byte offset of end of the request.</li>
+          <li>Any non start or end chunks are interior to the range, and returned as whole chunks.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Example</h3>
+        <p>
+          For a request of <code>Range: bytes=500-1600</code>
+          two chunks will be retrieved, chunk 0 and chunk 1.
+        </p>
+        <ul>
+          <li>
+            <b>Chunk 0</b> (offset 0, 1024 bytes):
+            <ul>
+              <li>Intersection: <code>[500, 1024)</code></li>
+              <li>Extracted: <code>chunk_data[500..1024]</code> (524 bytes)</li>
+            </ul>
+          </li>
+          <li>
+            <b>Chunk 1</b> (offset 1024, 1024 bytes):
+            <ul>
+              <li>Intersection: <code>[1024, 1600)</code></li>
+              <li>Extracted: <code>chunk_data[0..577]</code> (577 bytes)</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+    </section>
   
 
-<section><h2>References</h2><dl><dt id="ref-blake3">[blake3]</dt><dd>J-P. Aumasson, S. Neves, J. O'Connor, Z. Wilcox. <a href="https://www.ietf.org/archive/id/draft-aumasson-blake3-00.html"><cite>The BLAKE3 Hashing Framework</cite></a>. July 2024. URL:&nbsp;<a href="https://www.ietf.org/archive/id/draft-aumasson-blake3-00.html">https://www.ietf.org/archive/id/draft-aumasson-blake3-00.html</a></dd><dt id="ref-cid">[cid]</dt><dd>Robin Berjon &amp; Juan Caballero. <a href="https://dasl.ing/cid.html"><cite>Content IDs (CIDs)</cite></a>. 2025-10-20. URL:&nbsp;<a href="https://dasl.ing/cid.html">https://dasl.ing/cid.html</a></dd></dl></section></main></body></html>
+<section><h2>References</h2><dl><dt id="ref-blake3">[blake3]</dt><dd>J-P. Aumasson, S. Neves, J. O'Connor, Z. Wilcox. <a href="https://www.ietf.org/archive/id/draft-aumasson-blake3-00.html"><cite>The BLAKE3 Hashing Framework</cite></a>. July 2024. URL:&nbsp;<a href="https://www.ietf.org/archive/id/draft-aumasson-blake3-00.html">https://www.ietf.org/archive/id/draft-aumasson-blake3-00.html</a></dd><dt id="ref-cid">[cid]</dt><dd>Robin Berjon &amp; Juan Caballero. <a href="https://dasl.ing/cid.html"><cite>Content IDs (CIDs)</cite></a>. 2026-01-23. URL:&nbsp;<a href="https://dasl.ing/cid.html">https://dasl.ing/cid.html</a></dd><dt id="ref-ipfs-principles">[ipfs-principles]</dt><dd>Robin Berjon. <a href="https://specs.ipfs.tech/architecture/principles/"><cite>IPFS Principles</cite></a>. march 2023. URL:&nbsp;<a href="https://specs.ipfs.tech/architecture/principles/">https://specs.ipfs.tech/architecture/principles/</a></dd><dt id="ref-iroh-blobs">[iroh-blobs]</dt><dd><a href="https://docs.rs/iroh-blobs/latest/iroh_blobs/protocol/index.html"><cite>iroh-blobs protocol specification</cite></a></dd><dt id="ref-rfc9110">[rfc9110]</dt><dd>HTTP Semantics (Range Requests: Section 14) <a href="https://www.rfc-editor.org/rfc/rfc9110.html#section-14">RFC 9110</a></dd></dl></section></main></body></html>
