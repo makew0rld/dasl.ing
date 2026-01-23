@@ -81,7 +81,7 @@
         is justified by the streaming benefits.
       </p>
       <p>
-        Section 6.4 of the [[blake3]] spec outlines
+        The [[blake3]] spec outlines
         <i>Streaming Verification</i>, a process that allows the sender
         and receiver of a CID to incrementally verify data as it is
         being transferred. Applying this technique to CIDs is the core
@@ -103,29 +103,38 @@
       <p>
         [[rfc9110]] defines HTTP range requests for fetching a single
         contiguous set of bytes from a larger source held by a server.
-        Range requests use a Range header: <code>Range: bytes={start}-{end}</code>
+        Range requests use a <code>Range</code> header: <code>Range: bytes={start}-{end}</code>
         Both <var>start</var> and <var>end</var> values are optional, and when missing indicate
         the first and last byte, respectively. Both are integers that map to bytes,
         with 0 indexing the first byte. The <var>end</var> integer is inclusive, such that
         ranging over the first 500 bytes would require a range specifier of <code>0-499</code>.
       </p>
       <p>
-        In this context the HTTP server is acting as a <i>trusted</i> gateway,
-        performing verification on behalf of the user or simply serving as the
-        authority for that content ([[ipfs-principles]]). The advantage of
-        delegating trust here is interoperability with standard HTTP semantics.
-        For <i>trustless</i> fetching, we can instead use verified streaming directly
+        In this context, the HTTP server is <em>trusted</em>: the client is getting
+        bytes back the integrity of which it cannot verify and has to trust the
+        server to be correctly performing verification on behalf of the user, to
+        not be malicious, to not introduce errors, and ultimately to serve as the
+        authority for that content ([[ipfs-principles]]). Being able to support
+        <em>trustless</em> fetching requires the abilty to use verified streaming directly
         as described below.
       </p>
       <section>
-        <h3>Fufilling Requests</h3>
+        <h3>Fufilling Range Requests</h3>
+        <p>
+          Under the hood, streaming verification works by verifying <em>chunks</em>
+          of a certain size. The chunks are the smallest level of granularity that
+          can be verified. If the chunk size is 1024 bytes and the client requests
+          range 900-1299, then the client needs to fetch two chunks (0-1023 and
+          1024-2047) for a total of 2048 bytes, verify those two chunks, and then
+          return the subset of data corresponding to the requested range.
+        </p>
         <p>
           For a given normalized byte range
           <code>(start: Option&lt;u64>, end: Option&lt;u64>)</code>,
           that byte range is mapped to a <var>chunk range</var>, which is the
           set of chunks that fully contains the set of bytes in the
           HTTP range request. The <var>chunk range</var> corresponding to a given
-         byte range is calculated as follows:
+          byte range is calculated as follows:
         </p>
         <p>
           <i>Start Chunk</i>:
