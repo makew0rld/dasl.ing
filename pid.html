@@ -1,0 +1,179 @@
+<!DOCTYPE html><html lang="en"><head>
+
+<!--
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!   GENERATED SPEC — DO NOT EDIT. Look for the .src.html instead   !!!!
+!!!!!                                                                  !!!!
+!!!!!   HEY YOU                                                        !!!!
+!!!!!   YES ***YOU****!                                                !!!!
+!!!!!                                                                  !!!!
+!!!!!   You're about to edit a generated document.                     !!!!
+!!!!!   Don't do that! Why would you do that.                          !!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+-->
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Perceptual IDs (PIDs)</title>
+  <link rel="stylesheet" href="spec.css"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%220%22 y=%220%22 width=%22100%22 height=%22100%22 fill=%22%2300ff75%22></rect></svg>"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" property="og:title" content="DASL: Perceptual IDs (PIDs)"><meta name="twitter:description" property="og:description" content="DASL PIDs are a simple structured identifier for referring to similar         media using perceptual hashing. They are extensible and         algorithm-agnostic, supporting image, video, or other kinds of content         fingerprinting."><meta name="twitter:image" property="og:image" content="https://dasl.ing/pid.png"><meta name="twitter:image:alt" content="Very colourful stripes, so colourful it hurts"><meta name="twitter:url" property="og:url" content="https://dasl.ing/"><meta property="og:site_name" content="DASL"><meta property="og:locale" content="en"><meta name="theme-color" content="#00ff75"></head>
+  <body><div class="nav-back">A specification of the <a href="/">DASL Project</a>.</div><main><header><h1>Perceptual IDs (PIDs)</h1><table><tbody><tr><th>date</th><td>2026-02-04</td></tr><tr><th>editors</th><td><a href="https://makeworld.space/">Cole Anthony Capilongo</a> &lt;<a href="mailto:cole@hypha.coop">cole@hypha.coop</a>&gt;</td></tr><tr><th>issues</th><td><a href="https://github.com/darobin/dasl.ing/issues">list</a>, <a href="https://github.com/darobin/dasl.ing/issues/new">new</a></td></tr><tr><th>abstract</th><td><div id="abstract">
+      <p>
+        DASL PIDs are a simple structured identifier for referring to similar
+        media using perceptual hashing. They are extensible and
+        algorithm-agnostic, supporting image, video, or other kinds of content
+        fingerprinting.
+      </p>
+    </div></td></tr></tbody></table></header>
+    
+    <section>
+      <h2>Introduction</h2>
+      <p>
+        DASL PIDs are a simple structured identifier for referring to similar
+        media using perceptual hashing. They are extensible and
+        algorithm-agnostic, supporting image, video, or other kinds of content
+        fingerprinting.
+      </p>
+      <p>
+        Unlike a [<a href="#ref-cid" class="ref">cid</a>], a PID does not refer to any single file or sequence of
+        bits. It refers to a set of similar content files that have the same or
+        similar PIDs. You must be able to parse and understand the hash
+        algorithm referred to within the PID to use it; simply comparing strings
+        is not enough.
+      </p>
+      <p>
+        A DASL PID can be represented as a string or as an array of bytes. It
+        has the following structure:
+      </p>
+      <ol>
+        <li>
+          A <code>p</code> prefix (only in string form) to differentiate it from
+          CIDs.
+        </li>
+        <li>
+          An algorithm type, indicating which perceptual hashing algorithm was
+          used.
+        </li>
+        <li>A length for the rest of the identifier.</li>
+        <li>
+          The data, which is either the algorithm output hash or a CID of that
+          hash, depending on the algorithm type.
+        </li>
+      </ol>
+    </section>
+    <section>
+      <h2>Parsing PIDs</h2>
+      <p>
+        Use the following steps to <dfn id="dfn-parse-a-string-encoded-pid">parse a string-encoded PID</dfn>, i.e.
+        translate it to a bytestring:
+      </p>
+      <ol>
+        <li>Accept a string <var>PID</var>.</li>
+        <li>
+          Remove the first character from <var>PID</var> and store it in
+          <var>prefix</var>.
+        </li>
+        <li>
+          If <var>prefix</var> is not equal to <code>p</code>, throw an error.
+        </li>
+        <li>
+          Decode the rest of <var>PID</var> using
+          <a href="https://datatracker.ietf.org/doc/html/rfc4648#section-6">the base32 algorithm from RFC4648</a>
+          with a lowercase alphabet and store the result in
+          <var>PID bytes</var> ([<a href="#ref-rfc4648" class="ref">rfc4648</a>]).
+        </li>
+        <li>
+          This results in <var>PID bytes</var>, which can be used to
+          <a href="#dfn-decode-a-pid" class="dfn-ref">decode a PID</a>.
+        </li>
+      </ol>
+      <p>Use the following steps to <dfn id="dfn-decode-a-pid">decode a PID</dfn>:</p>
+      <ol>
+        <li>Accept an array of bytes <var>PID bytes</var>.</li>
+        <li>
+          Read a [<a href="#ref-varint" class="ref">varint</a>] from <var>PID bytes</var> and store it in
+          <var>algorithm type</var>. For most use cases, you can assume it's a
+          single byte and reject unknown integers (unknown algorithm types).
+        </li>
+        <li>
+          Check <var>algorithm type</var> against the
+          <a href="#registry">algorithm registry</a> and/or the list of
+          algorithms your application supports. If it is not a supported
+          algorithm, throw an error.
+        </li>
+        <li>
+          Read a varint from <var>PID bytes</var> and store it in
+          <var>length</var>.
+        </li>
+        <li>
+          Verify that <var>length</var> matches the expected length for the
+          <var>algorithm type</var>
+          as specified in the registry. If it does not match, throw an error.
+        </li>
+        <li>
+          Read <var>length</var> bytes from <var>PID bytes</var> and store them
+          in <var>data</var>. If there are fewer than <var>length</var> bytes
+          remaining, throw an error.
+        </li>
+        <li>
+          If the algorithm type specifies that <var>data</var> contains a
+          [<a href="#ref-cid" class="ref">cid</a>], parse it according to that specification. Otherwise,
+          <var>data</var> contains the perceptual hash directly.
+        </li>
+        <li>
+          Return <var>algorithm type</var>, <var>length</var>, and
+          <var>data</var>.
+        </li>
+      </ol>
+    </section>
+    <section id="registry">
+      <h2>Registry</h2>
+      <p>
+        The following table lists the officially registered perceptual hashing
+        algorithms. Note number 0x00 is reserved and should be considered
+        invalid if parsed.
+      </p>
+      <p>
+        The length column refers to the length of the raw hash in the PID, or
+        the length of the CID (fixed at 36 bytes). If a CID is used, the length
+        of the data the CID points to is not defined.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Algorithm</th>
+            <th>Number</th>
+            <th>Content type</th>
+            <th>Hash or CID</th>
+            <th>Length</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <a href="https://github.com/facebook/ThreatExchange/tree/main/pdq">PDQ</a>
+            </td>
+            <td>0x01</td>
+            <td>Image</td>
+            <td>Hash</td>
+            <td>32 bytes</td>
+          </tr>
+          <tr>
+            <td>
+              <a href="https://github.com/facebook/ThreatExchange/tree/main/tmk">TMK+PDQF</a>
+            </td>
+            <td>0x02</td>
+            <td>Video</td>
+            <td>CID</td>
+            <td>36 bytes</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  
+
+<section><h2>References</h2><dl><dt id="ref-cid">[cid]</dt><dd>Robin Berjon &amp; Juan Caballero. <a href="https://dasl.ing/cid.html"><cite>Content IDs (CIDs)</cite></a>. 2026-02-04. URL:&nbsp;<a href="https://dasl.ing/cid.html">https://dasl.ing/cid.html</a></dd><dt id="ref-rfc4648">[rfc4648]</dt><dd>S. Josefsson. <a href="https://www.rfc-editor.org/rfc/rfc4648"><cite>The Base16, Base32, and Base64 Data Encodings</cite></a>. October 2006. URL:&nbsp;<a href="https://www.rfc-editor.org/rfc/rfc4648">https://www.rfc-editor.org/rfc/rfc4648</a></dd><dt id="ref-varint">[varint]</dt><dd><a href="https://github.com/multiformats/unsigned-varint"><cite>unsigned varint</cite></a>. URL:&nbsp;<a href="https://github.com/multiformats/unsigned-varint">https://github.com/multiformats/unsigned-varint</a></dd></dl></section></main></body></html>
