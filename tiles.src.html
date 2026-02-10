@@ -50,7 +50,7 @@
     <section>
       <h2>Tiles on AT Protocol</h2>
       <p>
-        A key use case for tiles is publishing them on the <a href="https://atproto.com/">AT Protocol</a> [[at]].
+        A key use case for tiles is publishing them on the <a href="https://atproto.com/">AT Protocol</a> ([[at]]).
         Publishing a tile on AT is conceptually simple: every entry in <code>resources</code> must get uploaded
         as a blob to the relevant PDS and then the tile itself must be posted to the account's repository as a
         record containing the manifest.
@@ -64,14 +64,150 @@
     <section>
       <h2>Tiles in CAR</h2>
       <p>
-        tk
+        Tiles can be stored as files by packing them into <a href="car.html">CARballs</a> ([[car]]). All the resources
+        must be in the CAR, and the CAR header must be the <a href="masl.html">MASL</a> metadata, along with the
+       <code>roots</code> and <code>version</code> fields that CAR requires ([[masl]]).
+      </p>
+      <p>
+        As a convention, the tile carball may be named with a <code>.tile</code> extension. No particular media
+        type is recommended at this time, the preferred way of publishing tiles online being over AT.
       </p>
     </section>
     <section>
       <h2>Tile Execution Contexts</h2>
       <p>
-        tk
+        In order to guarantee that tiles run in as safe and private a manner as possible, the web context into
+        which they are loaded must meet restrictions that correspond to the following headers:
       </p>
+      <pre>
+content-security-policy:
+    default-src 'self' blob: data:;
+    script-src 'self' blob: data: 'unsafe-inline' 'wasm-unsafe-eval';
+    script-src-attr 'none';
+    style-src 'self' blob: data: 'unsafe-inline';
+    form-src 'self';
+    manifest-src 'none';
+    object-src 'none';
+    base-uri 'none';
+    sandbox allow-downloads
+            allow-forms
+            allow-modals
+            allow-same-origin
+            allow-scripts
+            allow-top-navigation-by-user-activation
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: cross-origin
+origin-agent-cluster: ?1
+permissions-policy: interest-cohort=(), browsing-topics=()
+referrer-policy: no-referrer
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+      </pre>
+      <p>
+        In the current state of browser technology, loading tiles in a web context requires setting up
+        an origin that is unique to the tile (currently it is random, though it may become derived from
+        its CID), which in turn requires touching the network. It is recommended to use a server that
+        is trusted by the user for this purpose (i.e. one that cannot learn more than what the
+        embedding context already knows).
+      </p>
+      <p>
+        Because the lack of network access is restrictive, tiles can be granted additional contextual
+        access. A future version of this specification will add support for chat channels (to sync
+        between tile instances in a chat) and an intent-based way for tiles to call one another.
+      </p>
+    </section>
+    <section id="decisions">
+      <h2>Appendix: Decision Tree</h2>
+      <p>
+        The design of web tiles can be surprising to people who are used to
+        typical apps. A core part of the model is that, while they can have
+        access to relatively powerful capabilities, they are completely cut off
+        from network access beyond loading their own pre-declared dependencies
+        (and barring gating access through specific user action).
+      </p>
+      <p>
+        This can feel restrictive, but two things mitigate those restrictions.
+        First, depending on context, tiles can be granted access to functions
+        that allow them to perform things that regular pages cannot, such as
+        communicating with other instances of the same tile in a chat or
+        invoking other tiles. And second — and most importantly — this
+        restriction makes new applications possible. In many cases it's simply
+        inconceivable to run a full-fledge web frame simply because it could
+        exfiltrate too much sensitive data too easily. But since tiles have very
+        constrained exfiltration paths, they are safe for use in private
+        environments.
+      </p>
+      <p>
+        To better understand this, we've made a decision tree that maps the design
+        space for embedded apps and docs. It’s worth pointing out that one
+        decision that isn’t in the tree is about whether users should be prompted
+        for access to powerful capabilities as a load-bearing component of access
+        to anything dangerous, including exfiltration. It’s not there because a
+        world in which that works doesn’t exist.
+      </p>
+      <dl>
+        <dt>Do you want to build atop web technology?</dt>
+        <dd>
+          <u>No</u>. That’s respectable, good luck to you. You’ll probably
+          have to pick trade-off from the rest of the tree, but they’ll depend
+          a lot on the architectural fundamentals that you select and so it’s
+          hard to discuss that in meaningful detail. You exit the tree here.
+        </dd>
+        <dd>
+          <u>Yes</u>. Reuse is good. Painful, but good.
+          <dl>
+            <dt>What networking security model do you want?</dt>
+            <dd>
+              <u>At least partly arbitrary network access</u>. This may be
+              somewhat restricted (SOP, CORS, etc.) but you can touch the network,
+              which means that you can exfiltrate sensitive information from
+              powerful APIs and generally violate privacy.
+              <dl>
+                <dt>Is installation gated to verify some degree of safety of the content?</dt>
+                <dd>
+                  <u>No</u>. This is basically the web as supported by today’s
+                  browsers. You can change some things about how it’s implemented,
+                  what the UX is, but in general you will need to limit access
+                  to many powerful features, you will need to be careful to
+                  limit the loading of content not initially triggered by user
+                  action, etc. Nothing new here.
+                </dd>
+                <dd>
+                  <u>Yes</u>. This is an app store. We know where it ends.
+                </dd>
+              </dl>
+            </dd>
+            <dd>
+              <u>No network access beyond pre-determined content</u>. This makes
+              it possible to expose much more powerful APIs and much more private
+              information, up to and including granting access for instance to a
+              full private chat. The lack of access to the network is limiting,
+              but it also renders the system composable and predictable.
+              <dl>
+                <dt>What kind of packaging tech do you use?</dt>
+                <dd>
+                  <u>Zip-like</u>. This is essentially WebXDC. It’s a fine approach
+                  and has seen variants implemented. The downside is that loading
+                  content becomes tied to loading the whole bundle or playing
+                  challenging games with built-in Zip manifests and range requests.
+                  It makes including large content (e.g. parquet, video) difficult
+                  and in the general case it will murder the latency of your first
+                  paint and interactivity.
+                </dd>
+                <dd>
+                  <u>Manifest-like</u>. The limits to content loading are not
+                  defined by a packaging format but by a manifest that will map
+                  the bundle’s internal paths to loading mechanisms, ideally content
+                  addressed. The full content can be bundled if desired (e.g. into
+                  a CAR) but it can also be loaded through content-addressing
+                  indirection mechanisms, for instance from a PDS over AT. This
+                  is web tiles.
+                </dd>
+              </dl>
+            </dd>
+          </dl>
+        </dd>
+      </dl>
     </section>
     <section id="lexicon">
       <h2>Appendix: Tiles Lexicon</h2>
@@ -94,7 +230,9 @@
     "/": {
       "src": {
         "$type": "blob",
-        "ref": { "$link": "bafkreicknles2uzv7sruakcbjtn5pnoc4rqmgkvnavuq4raxexjvcn7osq" },
+        "ref": {
+         "$link":"bafkreicknles2uzv7sruakcbjtn5pnoc4rqmgkvnavuq4raxexjvcn7osq"
+        },
         "size": 20,
         "mimeType": "application/octet-stream"
       },
