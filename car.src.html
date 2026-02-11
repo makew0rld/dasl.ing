@@ -82,13 +82,13 @@
       </p>
       <ul>
         <li>
-          The object MUST contain a <code>version</code> map entry, the value of which
+          The object must contain a <code>version</code> map entry, the value of which
           is always integer-type <code>1</code>. Version numbers in data formats are
           an anti-pattern, and as a result this number is guaranteed never to change.
         </li>
         <li>
-          The object MUST contain a <code>roots</code> entry, which MUST be of type
-          array. It MAY be empty, but if it isn't then it must be an array of CIDs
+          The object must contain a <code>roots</code> entry, which must be of type
+          array. It may be empty, but if it isn't then it must be an array of CIDs
           encoded using tag 42 ([[cid]]). A CAR can be used
           to contain one or more DAGs of [[drisl]] content and the purpose of the
           <code>roots</code> is to list one or more roots for those DAGs. The array
@@ -96,8 +96,8 @@
         </li>
       </ul>
       <p>
-        Some implementations will only return <var>version</var> and <var>roots</var>,
-        but it is RECOMMENDED that they make the entire <var>metadata</var> object
+        Some historical implementations will only return <var>version</var> and <var>roots</var>,
+        but it is recommended that they make the entire <var>metadata</var> object
         available. A best practice for authors is to use the <var>metadata</var>
         to capture MASL content, which is able to provide metadata and a pathing
         mapping for the entire content of the CAR stream if needed ([[masl]]).
