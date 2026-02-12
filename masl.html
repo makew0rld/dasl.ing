@@ -19,7 +19,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MASL — Metadata for Arbitrary Structures &amp; Links</title>
   <link rel="stylesheet" href="spec.css"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%220%22 y=%220%22 width=%22100%22 height=%22100%22 fill=%22%2300ff75%22></rect></svg>"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" property="og:title" content="DASL: MASL — Metadata for Arbitrary Structures &amp; Links"><meta name="twitter:description" property="og:description" content="MASL is a CBOR-based metadata system that is designed to work well with content-addressed         and decentralised systems, to enable fully self-contained, self-certified content         distribution."><meta name="twitter:image" property="og:image" content="https://dasl.ing/masl.png"><meta name="twitter:image:alt" content="Very colourful stripes, so colourful it hurts"><meta name="twitter:url" property="og:url" content="https://dasl.ing/"><meta property="og:site_name" content="DASL"><meta property="og:locale" content="en"><meta name="theme-color" content="#00ff75"></head>
-  <body><div class="nav-back">A specification of the <a href="/">DASL Project</a>.</div><main><header><h1>MASL — Metadata for Arbitrary Structures &amp; Links</h1><table><tbody><tr><th>date</th><td>2026-01-23</td></tr><tr><th>editors</th><td><a href="https://berjon.com/">Robin Berjon</a> &lt;<a href="mailto:robin@berjon.com">robin@berjon.com</a>&gt;<br><a href="https://bumblefudge.com/">Juan Caballero</a> &lt;<a href="mailto:bumblefudge@learningproof.xyz">bumblefudge@learningproof.xyz</a>&gt;</td></tr><tr><th>issues</th><td><a href="https://github.com/darobin/dasl.ing/issues">list</a>, <a href="https://github.com/darobin/dasl.ing/issues/new">new</a></td></tr><tr><th>abstract</th><td><div id="abstract">
+  <body><div class="nav-back">A specification of the <a href="/">DASL Project</a>.</div><main><header><h1>MASL — Metadata for Arbitrary Structures &amp; Links</h1><table><tbody><tr><th>date</th><td>2026-02-11</td></tr><tr><th>editors</th><td><a href="https://berjon.com/">Robin Berjon</a> &lt;<a href="mailto:robin@berjon.com">robin@berjon.com</a>&gt;<br><a href="https://bumblefudge.com/">Juan Caballero</a> &lt;<a href="mailto:bumblefudge@learningproof.xyz">bumblefudge@learningproof.xyz</a>&gt;</td></tr><tr><th>issues</th><td><a href="https://github.com/darobin/dasl.ing/issues">list</a>, <a href="https://github.com/darobin/dasl.ing/issues/new">new</a></td></tr><tr><th>abstract</th><td><div id="abstract">
       <p>
         MASL is a CBOR-based metadata system that is designed to work well with content-addressed
         and decentralised systems, to enable fully self-contained, self-certified content
@@ -74,7 +74,7 @@
           blocks after the metadata header.
         </p>
         <p>
-          In order to be inserted directly as metadata object within CAR files, MASL documents need to contain a top-level <code>version</code> property whose value MUST
+          In order to be inserted directly as metadata object within CAR files, MASL documents need to contain a top-level <code>version</code> property whose value must
           be set to integer <code>1</code> and a top-level <code>roots</code> array that must contain 0 or more tag 42 CIDs and nothing else.
           Neither of these fields has any meaning in MASL, but they must be provided in the context of a CAR header for historical compatibility
           reasons.
@@ -108,17 +108,17 @@
           </li>
           <li>
             <strong>Bundle Mode</strong> (using <code>resources</code>): the metadata is used to
-            describe a whole set of resources. These resources SHOULD be related to one another in some
+            describe a whole set of resources. These resources will typically be related to one another in some
             way (e.g. components that go into building an app or document). The keys of the <code>resources</code>
-            map are complete paths that MUST start with <code>/</code> and the values are metadata
-            objects that MUST have an <code>src</code> field pointing to the resource's CID and SHOULD have a
+            map are complete paths that must start with <code>/</code> and the values are metadata
+            objects that must have an <code>src</code> field pointing to the resource's CID and should have a
             <code>content-type</code> field giving its MIME type, along with other HTTP headers.
-            Any other properties present which do not map to HTTP headers MUST be ignored.
+            Any other properties present which do not map to HTTP headers must be ignored.
           </li>
         </ul>
         <p>
           Note that if both <code>src</code> and <code>resources</code> are specified, then
-          <code>src</code> MUST be ignored.
+          <code>src</code> must be ignored.
         </p>
         <p>
           The Bundle Mode has some specific processing rules:
@@ -126,8 +126,8 @@
         <ul>
           <li>
             Default: The entry with path <code>/</code> is the default path that is loaded if the bundle
-            itself gets rendered, e.g. in a browser or other user-agent. Implementations MUST only recognise this as the default
-            and MUST NOT automatically decide to pick a given entry (e.g. <code>/index.html</code>).
+            itself gets rendered, e.g. in a browser or other user-agent. Implementations must only recognise this as the default
+            and must not automatically decide to pick a given entry (e.g. <code>/index.html</code>).
           </li>
           <li>
             Relative: When loading a bundle into a web context, the root of the bundle is given an opaque origin,
@@ -140,8 +140,8 @@
             do <em>not</em> map to file systems.
           </li>
           <li>
-            Query strings: When resolving a URL inside of a bundle, implementation MUST only make use of the URL's pathname and
-            MUST ignore the query string. (Note that this departs from typical URL processing but makes it easier
+            Query strings: When resolving a URL inside of a bundle, implementation must only make use of the URL's pathname and
+            must ignore the query string. (Note that this departs from typical URL processing but makes it easier
             to pass parameters between resources internally.)
           </li>
         </ul>
@@ -188,20 +188,20 @@
         <p>
           MASL supports a subset of HTTP response headers that are meaningful in decentralised
           contexts. This doesn't preclude headers not listed here from being used, but implementations
-          that support using HTTP headers SHOULD NOT reflect the value of arbitrary HTTP headers
+          that support using HTTP headers should not reflect the value of arbitrary HTTP headers
           without considering the potential attack surface they create.
         </p>
         <p>
           When using HTTP headers as MASL metadata, there are two modes. If the MASL document
           contains a root <code>resources</code> field then it is a MASL document for multiple resources
           and the HTTP headers are only meaningful if they are set on values of the <code>resources</code>
-          map (and MUST be ignored if set on the root object). Conversely, if this MASL document
-          contains a <code>src</code> field (and no <code>resources</code>) then the HTTP headers MUST
+          map (and must be ignored if set on the root object). Conversely, if this MASL document
+          contains a <code>src</code> field (and no <code>resources</code>) then the HTTP headers must
           be set on the root and ignored otherwise. If neither <code>src</code> nor <code>resources</code>
           are specified, the meaning of HTTP fields is undefined.
         </p>
         <p>
-          All HTTP headers, where specified, are lowercased. Implementations MUST ignore headers
+          All HTTP headers, where specified, are lowercased. Implementations must ignore headers
           with a different casing.
         </p>
         <p>
@@ -222,8 +222,8 @@
           <li><code>service-worker-allowed</code></li>
           <li>
             <code>sourcemap</code>: this must point to another resource in the <code>resources</code> map.
-            Implementations SHOULD verify that this is the case as source maps could otherwise be used to
-            exfiltrate information.
+            Implementations must verify that this is the case and ignore the header otherwise as source maps
+            could be used to exfiltrate information.
           </li>
           <li>
             <code>speculation-rules</code>: this must point to another resource in the <code>resources</code> map.
@@ -288,13 +288,13 @@
           <code>screenshots</code>,
           <code>short_name</code>, and
           <code>theme_color</code>.
-          Note: other manifest fields MAY be used, but their behaviour is not guaranteed in the kind
+          Note: other manifest fields may be used, but their behaviour is not guaranteed in the kind
           of web and web-like contexts for which MASL is optimized.
         </p>
         <p>
-          For both <code>icons</code> and <code>screenshots</code>, the <code>src</code> field MUST
+          For both <code>icons</code> and <code>screenshots</code>, the <code>src</code> field must
           be a path that matches an entry in the <code>resources</code> map, and the <code>type</code>
-          field that is normally accepted in manifests there MUST NOT be used and MUST be ignored
+          field that is normally accepted in manifests there must not be used and must be ignored
           if specified. Media type information for that resource is specific on the resource entry
           that <code>src</code> maps to.
         </p>
@@ -344,7 +344,7 @@
         <h3>AT Compatibility</h3>
         <p>
           When used with the AT Protocol ([<a href="#ref-at" class="ref">at</a>]), it is common that objects will need to feature
-          a <code>$type</code> field. If present, it MUST be a string and SHOULD be set to the
+          a <code>$type</code> field. If present, it must be a string and must be set to the
           value <code>ing.dasl.masl</code>.
         </p>
       </section>
@@ -353,7 +353,7 @@
         <p>
           When manipulating DAGs, it can be useful to keep track of history by referencing
           earlier versions of the same data or metadata. This can be done using the <code>prev</code>
-          field, which if present MUST be a tag 42 CID pointing to a previous MASL document.
+          field, which if present must be a tag 42 CID pointing to a previous MASL document.
         </p>
         <p>
           Example:
@@ -470,4 +470,4 @@
     </section>
   
 
-<section><h2>References</h2><dl><dt id="ref-at">[at]</dt><dd><a href="https://atproto.com/specs/atp"><cite>AT Protocol</cite></a>. URL:&nbsp;<a href="https://atproto.com/">https://atproto.com/</a></dd><dt id="ref-car">[car]</dt><dd>Robin Berjon &amp; Juan Caballero. <a href="https://dasl.ing/car.html"><cite>Content-Addressable aRchives (CAR)</cite></a>. 2026-01-23. URL:&nbsp;<a href="https://dasl.ing/car.html">https://dasl.ing/car.html</a></dd><dt id="ref-drisl">[drisl]</dt><dd>Robin Berjon &amp; Juan Caballero. <a href="https://dasl.ing/drisl.html"><cite>DRISL — Deterministic Representation for Interoperable Structures &amp; Links</cite></a>. 2026-01-23. URL:&nbsp;<a href="https://dasl.ing/drisl.html">https://dasl.ing/drisl.html</a></dd><dt id="ref-lexicon">[lexicon]</dt><dd><a href="https://atproto.com/specs/lexicon"><cite>AT Protocol: Lexicon</cite></a>.</dd><dt id="ref-manifest">[manifest]</dt><dd>M. Cáceres, K. Rohde Christiansen, D. González, D. Murphy, C. Liebel. <a href="https://www.w3.org/TR/appmanifest/"><cite>Web Application Manifest</cite></a>. March 2025. URL:&nbsp;<a href="https://www.w3.org/TR/appmanifest/">https://www.w3.org/TR/appmanifest/</a></dd><dt id="ref-rasl">[rasl]</dt><dd>Robin Berjon &amp; Juan Caballero. <a href="https://dasl.ing/rasl.html"><cite>RASL — Retrieval of Arbitrary Structures &amp; Links</cite></a>. 2026-01-23. URL:&nbsp;<a href="https://dasl.ing/rasl.html">https://dasl.ing/rasl.html</a></dd></dl></section></main></body></html>
+<section><h2>References</h2><dl><dt id="ref-at">[at]</dt><dd><a href="https://atproto.com/specs/atp"><cite>AT Protocol</cite></a>. URL:&nbsp;<a href="https://atproto.com/">https://atproto.com/</a></dd><dt id="ref-car">[car]</dt><dd>Robin Berjon &amp; Juan Caballero. <a href="https://dasl.ing/car.html"><cite>Content-Addressable aRchives (CAR)</cite></a>. 2026-02-11. URL:&nbsp;<a href="https://dasl.ing/car.html">https://dasl.ing/car.html</a></dd><dt id="ref-drisl">[drisl]</dt><dd>Robin Berjon &amp; Juan Caballero. <a href="https://dasl.ing/drisl.html"><cite>DRISL — Deterministic Representation for Interoperable Structures &amp; Links</cite></a>. 2026-02-11. URL:&nbsp;<a href="https://dasl.ing/drisl.html">https://dasl.ing/drisl.html</a></dd><dt id="ref-lexicon">[lexicon]</dt><dd><a href="https://atproto.com/specs/lexicon"><cite>AT Protocol: Lexicon</cite></a>.</dd><dt id="ref-manifest">[manifest]</dt><dd>M. Cáceres, K. Rohde Christiansen, D. González, D. Murphy, C. Liebel. <a href="https://www.w3.org/TR/appmanifest/"><cite>Web Application Manifest</cite></a>. March 2025. URL:&nbsp;<a href="https://www.w3.org/TR/appmanifest/">https://www.w3.org/TR/appmanifest/</a></dd><dt id="ref-rasl">[rasl]</dt><dd>Robin Berjon &amp; Juan Caballero. <a href="https://dasl.ing/rasl.html"><cite>RASL — Retrieval of Arbitrary Structures &amp; Links</cite></a>. 2026-02-11. URL:&nbsp;<a href="https://dasl.ing/rasl.html">https://dasl.ing/rasl.html</a></dd></dl></section></main></body></html>

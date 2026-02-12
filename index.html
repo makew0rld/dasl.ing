@@ -86,8 +86,34 @@
       <section id="how">
         <h2>How</h2>
         <p>
-          This section describes how to use DASL patterns. It's work in progress!
+          DASL creates a shared namespace for content (raw data) and metadata (structured documents) using <a href="cid.html">content identifiers</a>.
+          This allows <a href="drisl.html">documents</a> to easily reference data, as well as other documents.
+          Since the identifiers are content-addressed using SHA-256, anything in the namespace can
+          be hosted anywhere, and be retrieved from anywhere. No trusted storage is required.
+          A spec for retrieval is <a href="rasl.html">available</a>.
         </p>
+        <p>
+          Additional DASL specs help you build larger systems, such as the <a href="masl.html">MASL</a> document schema, or
+          the <a href="car.html">CAR</a> file format for bundling namespace objects.
+        </p>
+        <p>Here is an example document, represented as pseudo-JSON for legibility:</p>
+        <pre><code>{
+  // Some metadata
+  "author": "Samuel Johnson",
+  "ts": "2024-05-03T03:22:04.000Z",
+  "type": "create",
+  "path": "/foo/bar/baz",
+
+  // Now we reference a blob of data, by hash
+  // CIDs can be stored natively as bytes in documents for efficiency
+  "data": bafkreifn5yxi7nkftsn46b6x26grda57ict7md2xuvfbsgkiahe2e7vnq4,
+
+  // We can reference other documents as well
+  // The first few bytes of this identifier tell us (1) that it's a structured CBOR document, not a blob of raw data, and (2)
+  // the hash of the document, so we know whether we have it stored or not.
+  "author_profile": bafyreibgiedphoxy4pmqv2jmdm5atqq4dbe5ujtm3ebs6ue7gbwlec5do4
+}</code></pre>
+        <p>You can use DASL to build linked data graphs in your software in a coherent way that scales and travels easily.</p>
       </section>
       <section id="code">
         <h2>Implementations</h2>
@@ -111,6 +137,11 @@
           </li>
           <li>
             <a href="https://github.com/ipld/rust-ipld-core">ipld-core</a> (Rust): fast Rust implementation.
+          </li>
+          <li>
+            <a href="https://www.npmjs.com/package/@dasl/tiles">@dasl/tiles</a> (TS/JS): an implementation of Web
+            Tiles that includes a loading environment for web contexts, a command line tool to publish tiles to AT,
+            a server to provide tile loading, and carball reader and writer for on-disk tiles.
           </li>
           <li>
             <a href="https://www.npmjs.com/package/@dasl/rasl">@dasl/rasl</a> (TS/JS): an implementation of RASL
@@ -187,11 +218,20 @@
           </dd>
           <dt>
             <a href="pfp.html">Perceptual Fingerprint (PFP)</a>
+            <span class="early">Hot New Stuff</span>
           </dt>
           <dd>
             PFPs are an extensible fingerprint type to store various kinds of perceptual hashes
             in documents in an interoperable way. It refers to similar content files rather
             than a single piece of content.
+          <dt>
+            <a href="tiles.html">Web Tiles</a>
+            <span class="early">Hot New Stuff</span>
+          </dt>
+          <dd>
+            Tiles are composable web docs and apps that can safely be used in arbitrary contexts and assembled from multiple
+            sources to carry out complex user interface tasks. Their composability, security, and privacy properties
+            make them ideal for use in social media, chat, agents, and malleable software.
           </dd>
           <dt>
             <a href="ipfs.html">IPFS Interoperability Considerations</a>
