@@ -141,6 +141,26 @@
   "my pfp": {"__pfp": "paeqo5rgntyjx44a5dse6zygcmprz2ym7rxrbym6ogpzt44mgetbam3a"},
 }
       </pre>
+      <p>Here is the lexicon for using that custom type:</p>
+      <pre>
+{
+  "lexicon": 1,
+  "id": "ing.dasl.pfpRef",
+  "defs": {
+    "main": {
+      "type": "object",
+      "description": "Reference to a perceptual fingerprint (PFP).",
+      "required": ["__pfp"],
+      "properties": {
+        "__pfp": {
+          "type": "string",
+          "description": "Perceptual fingerprint per DASL spec. Format: p&lt;base32-payload&gt;."
+        }
+      }
+    }
+  }
+}
+      </pre>
     </section>
     <section id="registry">
       <h2>Registry</h2>
